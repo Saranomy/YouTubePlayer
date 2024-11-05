@@ -1,0 +1,20 @@
+{
+  "name": "YouTube In-App Player",
+  "id": "1423761393357016094",
+  "api": "1.0.0",
+  "main": "code.js",
+  "capabilities": ["inspect"],
+  "enableProposedApi": false,
+  "documentAccess": "dynamic-page",
+  "editorType": [
+    "figma",
+    "figjam",
+    "dev"
+  ],
+  "ui": "ui.html",
+  "networkAccess": {
+    "allowedDomains": [
+      "https://www.youtube.com/"
+    ]
+  }
+}

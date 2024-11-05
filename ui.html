@@ -1,0 +1,219 @@
+<style>
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollable-element {
+    overflow: -moz-hidden-unscrollable;
+    scrollbar-width: none;
+  }
+
+  .content {
+    background-color: var(--figma-color-bg);
+    color: var(--figma-color-text);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  p {
+    font-size: 0.875rem;
+    color: var(--figma-color-text-disabled);
+    -webkit-user-select: none;
+    user-select: none;
+    text-align: center;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  .top {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .input {
+    width: 6rem;
+    flex: 1 1 0%;
+    border-radius: 0.25rem;
+    border-width: 1px;
+    border-color: transparent;
+    background-color: var(--figma-color-bg-secondary);
+    padding: 0.25rem 0.5rem;
+    color: var(--figma-color-text);
+  }
+
+  .input:focus {
+    border-radius: 0.25rem;
+    border: 1px solid;
+    border-color: var(--figma-color-border-selected);
+    color: var(--figma-color-text);
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+
+  .watch-button {
+    border-radius: 0.25rem;
+    border-width: 1px;
+    border-color: transparent;
+    background-color: var(--figma-color-bg-brand);
+    padding: 0 0.5rem;
+    color: var(--figma-color-text-onbrand);
+    -webkit-user-select: none;
+    user-select: none;
+    outline: 1px solid transparent;
+  }
+
+  .watch-button:hover,
+  .watch-button:focus {
+    background-color: var(--figma-color-bg-brand-hover);
+    cursor: pointer;
+  }
+
+  .splash {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0.5rem;
+  }
+
+  .link {
+    outline: 1px solid transparent;
+    color: var(--figma-color-text-brand);
+    cursor: pointer;
+  }
+
+  .link:focus {
+    color: var(--figma-color-text);
+  }
+
+  .resize-handle {
+    color: var(--figma-color-text);
+    position: absolute;
+    bottom: 0rem;
+    right: 0rem;
+    padding: 0.5rem;
+    width: 2rem;
+    height: 2rem;
+    cursor: nwse-resize;
+    opacity: 0.5;
+  }
+
+  .resize-handle:hover {
+    opacity: 1;
+  }
+
+  .resize-handle svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  #ytplayer {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+</style>
+
+<body>
+  <div class="content">
+    <div class="top">
+      <input id="youtube-link" type="text" class="input" placeholder="https://www.youtube.com/watch?v=xxxxxxxxxxx">
+      <button id="watch-button" class="watch-button">Watch</button>
+    </div>
+    <div id="splash" class="splash">
+      <p>Paste a valid YouTube link and click Watch</p>
+      <p><a class="link" href="https://www.figma.com/community/plugin/1423761393357016094" target="_blank">Give
+          Feedback</a></p>
+    </div>
+    <iframe id="ytplayer" type="text/html" width="480" height="360" frameborder="0" allowfullscreen hidden></iframe>
+    <div class="resize-handle">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 18L22 14V22H14L18 18Z" fill="currentColor" />
+        <path d="M4 22L22 4V8L8 22H4Z" fill="currentColor" />
+      </svg>
+    </div>
+  </div>
+</body>
+
+<script>
+  let youtubeLink = document.getElementById('youtube-link')
+  let ytplayer = document.getElementById('ytplayer')
+  function update() {
+    let url = youtubeLink.value.trim()
+    let splash = document.getElementById('splash')
+    if (splash) splash.remove()
+    if (!url.startsWith('http')) {
+      url = 'https://' + url
+    }
+    // https://youtu.be/xxxxxxxxxxx?si=yyyyyy
+    url = url.replace('http://', 'https://')
+      .replace('youtu.be/', 'youtube.com/watch?v=')
+      .replace('//youtube.com', '//www.youtube.com')
+    if (url.includes('youtube.com')) {
+      youtubeLink.value = url
+      parent.postMessage({ pluginMessage: { type: 'save-link', content: url } }, '*')
+      url = url.replace('/watch?v=', '/embed/')
+        .replace('/playlist?list=', '/embed/videoseries?&amp;list=')
+      if (url == ytplayer.getAttribute('src')) return
+      ytplayer.setAttribute('src', url)
+      ytplayer.hidden = false
+      document.querySelectorAll('.resize-handle').forEach(element => {
+        element.style.opacity = 0
+      });
+    }
+  }
+  document.getElementById('watch-button').addEventListener('click', update)
+  document.getElementById('youtube-link').addEventListener('keydown', e => {
+    if (e.key === 'Enter') update()
+  })
+  const resizeHandle = document.querySelector('.resize-handle')
+  let isResizing = false
+  let startX, startY, startWidth, startHeight
+  resizeHandle.addEventListener('mousedown', initResize, false)
+  document.addEventListener('mousemove', resize, false)
+  document.addEventListener('mouseup', stopResize, false)
+  function initResize(e) {
+    isResizing = true
+    startX = e.clientX
+    startY = e.clientY
+    startWidth = document.body.offsetWidth
+    startHeight = document.body.offsetHeight
+  }
+  function resize(e) {
+    if (!isResizing) return;
+    let newWidth = startWidth + (e.clientX - startX)
+    let newHeight = startHeight + (e.clientY - startY)
+    if (newWidth < 240) newWidth = 240
+    if (newHeight < 180) newHeight = 180
+    ytplayer.setAttribute('width', newWidth)
+    ytplayer.setAttribute('height', newHeight)
+    parent.postMessage({
+      pluginMessage: {
+        type: 'resize', content: {
+          width: newWidth,
+          height: newHeight
+        }
+      }
+    }, '*')
+  }
+  function stopResize() { isResizing = false }
+  window.onmessage = (event) => {
+    const { type, content } = event.data.pluginMessage
+    if (type == 'load-link' && content) {
+      youtubeLink.value = content
+    } else if (type === 'dev-mode') {
+      document.querySelectorAll('.resize-handle').forEach(element => element.remove())
+      window.addEventListener('resize', () => {
+        ytplayer.setAttribute('width', window.innerWidth)
+      })
+    }
+  }
+</script>
