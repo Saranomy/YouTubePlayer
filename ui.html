@@ -91,10 +91,6 @@
     cursor: pointer;
   }
 
-  .link:focus {
-    color: var(--figma-color-text);
-  }
-
   .resize-handle {
     color: var(--figma-color-text);
     position: absolute;
@@ -105,6 +101,7 @@
     height: 2rem;
     cursor: nwse-resize;
     opacity: 0.5;
+    cursor: se-resize;
   }
 
   .resize-handle:hover {
@@ -131,7 +128,7 @@
     <div id="splash" class="splash">
       <p>Paste a valid YouTube link and click Watch</p>
       <p><a class="link" href="https://www.figma.com/community/plugin/1423761393357016094" target="_blank">Give
-          Feedback</a></p>
+        Feedback</a> | <a class="link" href="https://www.figma.com/@saranomy" target="_blank">More Plugins</a></p>
     </div>
     <iframe id="ytplayer" type="text/html" width="480" height="360" frameborder="0" allowfullscreen hidden></iframe>
     <div class="resize-handle">
